@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "typecheck": "tsc --noEmit"
+    "test": "npm run test:smoke",
+    "typecheck": "tsc --noEmit",
+    "start:api": "tsx app/server.ts",
+    "test:smoke": "k6 run tests/smoke/health.smoke.test.ts"
   },
   "keywords": [],
   "author": "",
@@ -14,6 +16,7 @@
   "devDependencies": {
     "@types/k6": "^2.0.0",
     "@types/node": "^25.9.1",
+    "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   }
 }

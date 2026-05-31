@@ -1,0 +1,33 @@
+import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+
+const port = Number(process.env.PORT ?? 3000);
+
+function sendJson(response: ServerResponse, statusCode: number, payload: unknown): void {
+  const body = JSON.stringify(payload);
+
+  response.writeHead(statusCode, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Content-Length': Buffer.byteLength(body),
+  });
+
+  response.end(body);
+}
+
+const server = createServer((request: IncomingMessage, response: ServerResponse) => {
+  if (request.method === 'GET' && request.url === '/health') {
+    sendJson(response, 200, {
+      status: 'ok',
+      service: 'local-performance-api',
+    });
+
+    return;
+  }
+
+  sendJson(response, 404, {
+    error: 'Not Found',
+  });
+});
+
+server.listen(port, () => {
+  console.log(`Local performance API listening on http://localhost:${port}`);
+});

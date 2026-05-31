@@ -29,4 +29,51 @@ Instead, it uses a local API so that performance scenarios, thresholds and test 
 
 ## Current status
 
-Project initialization in progress.
+The project currently includes:
+
+- a local Node.js REST API used as the system under test
+- a `/health` endpoint for smoke performance testing
+- a k6 smoke performance test written in TypeScript
+- reusable smoke test thresholds
+- TypeScript type checking
+
+## Running locally
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start the local API:
+
+```bash
+npm run start:api
+```
+
+In a second terminal, run the smoke performance test:
+
+```bash
+npm run test:smoke
+```
+
+Run TypeScript checks:
+
+```bash
+npm run typecheck
+```
+
+## Current smoke thresholds
+
+The current smoke test verifies that:
+
+- failed HTTP requests stay below 1%
+- 95% of requests complete below 500 ms
+
+These thresholds are intentionally simple at this stage and will be refined as more performance scenarios are added.
+
+## Notes
+
+This project is being developed iteratively.
+
+The current version focuses on establishing a clean foundation: local API, k6 execution, basic checks, thresholds and TypeScript validation. More advanced scenarios will be added in later commits.
