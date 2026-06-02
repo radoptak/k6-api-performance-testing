@@ -1,4 +1,5 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import { products } from './data/products.ts';
 
 const port = Number(process.env.PORT ?? 3000);
 
@@ -18,6 +19,15 @@ const server = createServer((request: IncomingMessage, response: ServerResponse)
     sendJson(response, 200, {
       status: 'ok',
       service: 'local-performance-api',
+    });
+
+    return;
+  }
+
+    if (request.method === 'GET' && request.url === '/products') {
+    sendJson(response, 200, {
+      data: products,
+      count: products.length,
     });
 
     return;
