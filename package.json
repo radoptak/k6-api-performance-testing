@@ -7,7 +7,9 @@
     "test": "npm run test:smoke",
     "typecheck": "tsc --noEmit",
     "start:api": "tsx app/server.ts",
-    "test:smoke": "k6 run tests/smoke/health.smoke.test.ts"
+    "test:smoke": "npm run test:smoke:health && npm run test:smoke:products",
+    "test:smoke:health": "k6 run tests/smoke/health.smoke.test.ts",
+    "test:smoke:products": "k6 run tests/smoke/products.smoke.test.ts"
   },
   "keywords": [],
   "author": "",
