@@ -3,19 +3,7 @@ import { check } from 'k6';
 
 import { baseUrl } from '../../src/config/environment.ts';
 import { smokeThresholds } from '../../src/config/performance-thresholds.ts';
-
-type ProductResponseItem = {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  inStock: boolean;
-};
-
-type ProductsResponse = {
-  data: ProductResponseItem[];
-  count: number;
-};
+import { isProductsResponse } from '../../src/validators/product-response.ts';
 
 export const options = {
   vus: 1,
@@ -23,35 +11,6 @@ export const options = {
   thresholds: smokeThresholds,
 };
 
-function isProductResponseItem(value: unknown): value is ProductResponseItem {
-  if (typeof value !== 'object' || value === null) {
-    return false;
-  }
-
-  const product = value as ProductResponseItem;
-
-  return (
-    typeof product.id === 'string' &&
-    typeof product.name === 'string' &&
-    typeof product.category === 'string' &&
-    typeof product.price === 'number' &&
-    typeof product.inStock === 'boolean'
-  );
-}
-
-function isProductsResponse(value: unknown): value is ProductsResponse {
-  if (typeof value !== 'object' || value === null) {
-    return false;
-  }
-
-  const response = value as ProductsResponse;
-
-  return (
-    Array.isArray(response.data) &&
-    response.data.every(isProductResponseItem) &&
-    typeof response.count === 'number'
-  );
-}
 
 export default function (): void {
   const response = http.get(`${baseUrl}/products`);

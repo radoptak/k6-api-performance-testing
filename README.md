@@ -17,7 +17,7 @@ Instead, it uses a local API as the system under test. This makes the test envir
 - running tests against a controlled local REST API
 - defining performance thresholds
 - separating functional checks from performance criteria
-- validating response status, headers and body shape
+- validating response status, headers, body shape and individual item structure
 - creating smoke and load test scenarios
 - running smoke performance tests in GitHub Actions
 - creating a project structure suitable for CI/CD integration
@@ -39,6 +39,7 @@ The project currently includes:
 - a `/health` endpoint for basic smoke performance testing
 - a `/products` endpoint returning sample product data
 - k6 smoke performance tests written in TypeScript
+- product response item shape validation in the `/products` smoke test
 - a k6 load test scenario for `GET /products`
 - reusable smoke and load thresholds
 - shared environment configuration
@@ -195,8 +196,15 @@ The `/products` smoke test checks:
 
 - `GET /products` returns HTTP 200
 - the response uses JSON content type
-- the response body has the expected basic shape
+- the response body has the expected shape
 - `data` is an array
+- each item in `data` has the expected product shape:
+  - `id` is a string
+  - `name` is a string
+  - `category` is a string
+  - `price` is a number
+  - `inStock` is a boolean
+
 - `count` is a number
 - `count` matches `data.length`
 - the product list is not empty
@@ -271,7 +279,7 @@ The load test is intentionally kept out of the default CI workflow because it ha
 
 This project uses both k6 checks and thresholds.
 
-**Checks** validate response correctness, for example whether the endpoint returns HTTP 200, whether the response uses JSON content type, or whether the response body has the expected shape.
+**Checks** validate response correctness, for example whether the endpoint returns HTTP 200, whether the response uses JSON content type, whether the response body has the expected shape, or whether product items have the expected structure.
 
 **Thresholds** define pass/fail criteria for the whole test run, for example maximum acceptable response time, failed request rate, or required check pass rate.
 
@@ -309,15 +317,15 @@ A local API allows the test suite to evolve without:
 ## Planned improvements
 
 - add more realistic API endpoints
+- add business-rule validation for product data
 - add stress test scenario
 - add spike test scenario
 - add HTML/JSON reporting
 - add manual GitHub Actions workflow for load tests
 - expand documentation with performance testing decisions
-- add stronger validation for individual product objects
 
 ## Notes
 
 This project is being developed iteratively.
 
-The current version focuses on establishing a clean foundation: local API, k6 execution, smoke checks, a first load scenario, reusable thresholds, response body validation, TypeScript validation and GitHub Actions smoke workflow. More advanced scenarios will be added in later commits.
+The current version focuses on establishing a clean foundation: local API, k6 execution, smoke checks, product item shape validation, a first load scenario, reusable thresholds, response body validation, TypeScript validation and GitHub Actions smoke workflow. More advanced scenarios will be added in later commits.
