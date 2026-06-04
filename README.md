@@ -19,7 +19,8 @@ Instead, it uses a local API as the system under test. This makes the test envir
 - separating functional checks from performance criteria
 - validating response status, headers and body shape
 - creating smoke and load test scenarios
-- creating a project structure suitable for future CI/CD integration
+- running smoke performance tests in GitHub Actions
+- creating a project structure suitable for CI/CD integration
 - documenting performance testing decisions in a recruiter-friendly way
 
 ## Tech stack
@@ -28,6 +29,7 @@ Instead, it uses a local API as the system under test. This makes the test envir
 - TypeScript
 - Node.js
 - npm
+- GitHub Actions
 
 ## Current status
 
@@ -40,6 +42,7 @@ The project currently includes:
 - a k6 load test scenario for `GET /products`
 - reusable smoke and load thresholds
 - shared environment configuration
+- GitHub Actions workflow for smoke performance tests
 - TypeScript type checking
 - npm scripts for local execution
 
@@ -47,6 +50,9 @@ The project currently includes:
 
 ```text
 k6-api-performance-testing/
+├── .github/
+│   └── workflows/
+│       └── smoke-performance.yml
 ├── app/
 │   ├── data/
 │   │   └── products.ts
@@ -233,6 +239,34 @@ The products load test verifies that:
 
 These thresholds are intentionally simple at this stage and will be refined as more realistic scenarios are added.
 
+## GitHub Actions
+
+This project includes a GitHub Actions workflow for smoke performance testing:
+
+```text
+.github/workflows/smoke-performance.yml
+```
+
+The workflow runs automatically on:
+
+- push to `main`
+- pull requests
+
+The CI workflow performs the following steps:
+
+- checks out the repository
+- sets up Node.js using `.nvmrc`
+- installs k6
+- installs npm dependencies with `npm ci`
+- runs TypeScript checks
+- starts the local API
+- waits until the local API is ready
+- runs smoke performance tests
+
+At this stage, the workflow runs smoke tests only.
+
+The load test is intentionally kept out of the default CI workflow because it has a different purpose and takes longer to execute. A separate manual workflow for load or extended performance scenarios may be added later.
+
 ## Checks vs thresholds
 
 This project uses both k6 checks and thresholds.
@@ -278,7 +312,7 @@ A local API allows the test suite to evolve without:
 - add stress test scenario
 - add spike test scenario
 - add HTML/JSON reporting
-- add GitHub Actions workflow
+- add manual GitHub Actions workflow for load tests
 - expand documentation with performance testing decisions
 - add stronger validation for individual product objects
 
@@ -286,4 +320,4 @@ A local API allows the test suite to evolve without:
 
 This project is being developed iteratively.
 
-The current version focuses on establishing a clean foundation: local API, k6 execution, smoke checks, a first load scenario, reusable thresholds, response body validation and TypeScript validation. More advanced scenarios will be added in later commits.
+The current version focuses on establishing a clean foundation: local API, k6 execution, smoke checks, a first load scenario, reusable thresholds, response body validation, TypeScript validation and GitHub Actions smoke workflow. More advanced scenarios will be added in later commits.
