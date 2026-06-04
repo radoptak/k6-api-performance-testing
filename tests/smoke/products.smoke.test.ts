@@ -24,14 +24,18 @@ export const options = {
 };
 
 function isProductResponseItem(value: unknown): value is ProductResponseItem {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const product = value as ProductResponseItem;
+
   return (
-    typeof value === 'object' &&
-    value !== null &&
-    typeof (value as ProductResponseItem).id === 'string' &&
-    typeof (value as ProductResponseItem).name === 'string' &&
-    typeof (value as ProductResponseItem).category === 'string' &&
-    typeof (value as ProductResponseItem).price === 'number' &&
-    typeof (value as ProductResponseItem).inStock === 'boolean'
+    typeof product.id === 'string' &&
+    typeof product.name === 'string' &&
+    typeof product.category === 'string' &&
+    typeof product.price === 'number' &&
+    typeof product.inStock === 'boolean'
   );
 }
 
