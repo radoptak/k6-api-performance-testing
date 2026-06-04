@@ -18,6 +18,7 @@ Instead, it uses a local API as the system under test. This makes the test envir
 - defining performance thresholds
 - separating functional checks from performance criteria
 - validating response status, headers and body shape
+- creating smoke and load test scenarios
 - creating a project structure suitable for future CI/CD integration
 - documenting performance testing decisions in a recruiter-friendly way
 
@@ -36,7 +37,9 @@ The project currently includes:
 - a `/health` endpoint for basic smoke performance testing
 - a `/products` endpoint returning sample product data
 - k6 smoke performance tests written in TypeScript
-- reusable smoke test thresholds
+- a k6 load test scenario for `GET /products`
+- reusable smoke and load thresholds
+- shared environment configuration
 - TypeScript type checking
 - npm scripts for local execution
 
@@ -50,8 +53,11 @@ k6-api-performance-testing/
 │   └── server.ts
 ├── src/
 │   └── config/
+│       ├── environment.ts
 │       └── performance-thresholds.ts
 ├── tests/
+│   ├── load/
+│   │   └── products.load.test.ts
 │   └── smoke/
 │       ├── health.smoke.test.ts
 │       └── products.smoke.test.ts
@@ -81,16 +87,10 @@ In a second terminal, run all smoke performance tests:
 npm run test:smoke
 ```
 
-Run only the `/health` smoke test:
+Run the products load test:
 
 ```bash
-npm run test:smoke:health
-```
-
-Run only the `/products` smoke test:
-
-```bash
-npm run test:smoke:products
+npm run test:load
 ```
 
 Run TypeScript checks:
@@ -106,6 +106,12 @@ npm run start:api
 ```
 
 Starts the local API on `http://localhost:3000`.
+
+```bash
+npm run test
+```
+
+Runs all smoke performance tests.
 
 ```bash
 npm run test:smoke
@@ -126,14 +132,48 @@ npm run test:smoke:products
 Runs the k6 smoke performance test against the local `/products` endpoint.
 
 ```bash
+npm run test:load
+```
+
+Runs all k6 load tests.
+
+```bash
+npm run test:load:products
+```
+
+Runs the k6 load test against the local `/products` endpoint.
+
+```bash
 npm run typecheck
 ```
 
 Runs TypeScript validation without emitting compiled files.
 
+## Environment configuration
+
+Tests use a shared `baseUrl` configuration from:
+
+```text
+src/config/environment.ts
+```
+
+By default, tests run against:
+
+```text
+http://localhost:3000
+```
+
+The target API URL can be overridden with `BASE_URL`:
+
+```bash
+BASE_URL=http://localhost:4000 npm run test:smoke
+```
+
+This allows the same tests to run against different environments without changing test code.
+
 ## Current smoke tests
 
-The current smoke tests verify that the local API is reachable and responds correctly under minimal load.
+Smoke tests verify that the local API is reachable and responds correctly under minimal load.
 
 ### `GET /health`
 
@@ -156,15 +196,42 @@ The `/products` smoke test checks:
 - the product list is not empty
 - smoke performance thresholds are met
 
-## Current smoke thresholds
+## Current load test
 
-The current smoke thresholds verify that:
+The current load test verifies that the `/products` endpoint remains stable under a small, constant local load.
+
+### `GET /products` load scenario
+
+The products load test uses:
+
+- `constant-vus` executor
+- 5 virtual users
+- 30 seconds duration
+- 1 second sleep between iterations
+
+This is intentionally a small local load scenario. It is not intended to simulate production traffic. Its purpose is to establish the structure for future load, stress and spike tests.
+
+## Current thresholds
+
+The project currently separates smoke thresholds from load thresholds.
+
+### Smoke thresholds
+
+Smoke tests verify that:
 
 - 100% of k6 checks pass
 - failed HTTP requests stay below 1%
 - 95% of requests complete below 500 ms
 
-These thresholds are intentionally simple at this stage and will be refined as more performance scenarios are added.
+### Load thresholds
+
+The products load test verifies that:
+
+- at least 99% of k6 checks pass
+- failed HTTP requests stay below 1%
+- 95% of requests complete below 500 ms
+
+These thresholds are intentionally simple at this stage and will be refined as more realistic scenarios are added.
 
 ## Checks vs thresholds
 
@@ -172,9 +239,27 @@ This project uses both k6 checks and thresholds.
 
 **Checks** validate response correctness, for example whether the endpoint returns HTTP 200, whether the response uses JSON content type, or whether the response body has the expected shape.
 
-**Thresholds** define performance pass/fail criteria, for example maximum acceptable response time, failed request rate, or required check pass rate.
+**Thresholds** define pass/fail criteria for the whole test run, for example maximum acceptable response time, failed request rate, or required check pass rate.
 
 This distinction is important because a performance test should not only confirm that the API responds, but also whether it responds within acceptable performance limits.
+
+## Smoke test vs load test
+
+A **smoke test** answers:
+
+```text
+Does the basic mechanism work?
+```
+
+In this project, smoke tests run with minimal traffic and validate that endpoints respond correctly.
+
+A **load test** answers:
+
+```text
+Does the endpoint remain stable under a defined level of traffic?
+```
+
+In this project, the first load test runs `GET /products` with 5 constant virtual users for 30 seconds.
 
 ## Why a local API?
 
@@ -190,15 +275,15 @@ A local API allows the test suite to evolve without:
 ## Planned improvements
 
 - add more realistic API endpoints
-- add load test scenario
 - add stress test scenario
 - add spike test scenario
 - add HTML/JSON reporting
 - add GitHub Actions workflow
 - expand documentation with performance testing decisions
+- add stronger validation for individual product objects
 
 ## Notes
 
 This project is being developed iteratively.
 
-The current version focuses on establishing a clean foundation: local API, k6 execution, basic checks, thresholds, response body validation and TypeScript validation. More advanced scenarios will be added in later commits.
+The current version focuses on establishing a clean foundation: local API, k6 execution, smoke checks, a first load scenario, reusable thresholds, response body validation and TypeScript validation. More advanced scenarios will be added in later commits.
