@@ -1,6 +1,7 @@
 import http from 'k6/http';
 import { check } from 'k6';
 
+import { baseUrl } from '../../src/config/environment.ts';
 import { smokeThresholds } from '../../src/config/performance-thresholds.ts';
 
 type ProductsResponse = {
@@ -13,8 +14,6 @@ export const options = {
   iterations: 5,
   thresholds: smokeThresholds,
 };
-
-const baseUrl = __ENV.BASE_URL ?? 'http://localhost:3000';
 
 function isProductsResponse(value: unknown): value is ProductsResponse {
   return (
