@@ -4,8 +4,16 @@ import { check } from 'k6';
 import { baseUrl } from '../../src/config/environment.ts';
 import { smokeThresholds } from '../../src/config/performance-thresholds.ts';
 
+type ProductResponseItem = {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  inStock: boolean;
+};
+
 type ProductsResponse = {
-  data: unknown[];
+  data: ProductResponseItem[];
   count: number;
 };
 
@@ -15,12 +23,29 @@ export const options = {
   thresholds: smokeThresholds,
 };
 
-function isProductsResponse(value: unknown): value is ProductsResponse {
+function isProductResponseItem(value: unknown): value is ProductResponseItem {
   return (
     typeof value === 'object' &&
     value !== null &&
-    Array.isArray((value as ProductsResponse).data) &&
-    typeof (value as ProductsResponse).count === 'number'
+    typeof (value as ProductResponseItem).id === 'string' &&
+    typeof (value as ProductResponseItem).name === 'string' &&
+    typeof (value as ProductResponseItem).category === 'string' &&
+    typeof (value as ProductResponseItem).price === 'number' &&
+    typeof (value as ProductResponseItem).inStock === 'boolean'
+  );
+}
+
+function isProductsResponse(value: unknown): value is ProductsResponse {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const response = value as ProductsResponse;
+
+  return (
+    Array.isArray(response.data) &&
+    response.data.every(isProductResponseItem) &&
+    typeof response.count === 'number'
   );
 }
 
