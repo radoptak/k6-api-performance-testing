@@ -9,7 +9,9 @@
     "start:api": "tsx app/server.ts",
     "test:smoke": "npm run test:smoke:health && npm run test:smoke:products",
     "test:smoke:health": "k6 run tests/smoke/health.smoke.test.ts",
-    "test:smoke:products": "k6 run tests/smoke/products.smoke.test.ts"
+    "test:smoke:products": "k6 run tests/smoke/products.smoke.test.ts",
+    "test:load:products": "k6 run tests/load/products.load.test.ts",
+    "test:load": "npm run test:load:products"
   },
   "keywords": [],
   "author": "",
