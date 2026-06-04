@@ -33,6 +33,25 @@ const server = createServer((request: IncomingMessage, response: ServerResponse)
     return;
   }
 
+const productDetailsMatch = request.url?.match(/^\/products\/([^/]+)$/);
+
+  if (request.method === 'GET' && productDetailsMatch) {
+    const productId = decodeURIComponent(productDetailsMatch[1]);
+    const product = products.find((item) => item.id === productId);
+
+    if (!product) {
+      sendJson(response, 404, {
+        error: 'Product Not Found',
+      });
+
+      return;
+    }
+
+    sendJson(response, 200, product);
+
+    return;
+  }
+
   sendJson(response, 404, {
     error: 'Not Found',
   });
