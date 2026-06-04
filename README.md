@@ -17,6 +17,7 @@ Instead, it uses a local API as the system under test. This makes the test envir
 - running tests against a controlled local REST API
 - defining performance thresholds
 - separating functional checks from performance criteria
+- validating response status, headers and body shape
 - creating a project structure suitable for future CI/CD integration
 - documenting performance testing decisions in a recruiter-friendly way
 
@@ -32,8 +33,9 @@ Instead, it uses a local API as the system under test. This makes the test envir
 The project currently includes:
 
 - a local Node.js REST API used as the system under test
-- a `/health` endpoint for smoke performance testing
-- a k6 smoke performance test written in TypeScript
+- a `/health` endpoint for basic smoke performance testing
+- a `/products` endpoint returning sample product data
+- k6 smoke performance tests written in TypeScript
 - reusable smoke test thresholds
 - TypeScript type checking
 - npm scripts for local execution
@@ -43,13 +45,16 @@ The project currently includes:
 ```text
 k6-api-performance-testing/
 ├── app/
+│   ├── data/
+│   │   └── products.ts
 │   └── server.ts
 ├── src/
 │   └── config/
 │       └── performance-thresholds.ts
 ├── tests/
 │   └── smoke/
-│       └── health.smoke.test.ts
+│       ├── health.smoke.test.ts
+│       └── products.smoke.test.ts
 ├── README.md
 ├── package.json
 ├── tsconfig.json
@@ -70,10 +75,22 @@ Start the local API:
 npm run start:api
 ```
 
-In a second terminal, run the smoke performance test:
+In a second terminal, run all smoke performance tests:
 
 ```bash
 npm run test:smoke
+```
+
+Run only the `/health` smoke test:
+
+```bash
+npm run test:smoke:health
+```
+
+Run only the `/products` smoke test:
+
+```bash
+npm run test:smoke:products
 ```
 
 Run TypeScript checks:
@@ -94,7 +111,19 @@ Starts the local API on `http://localhost:3000`.
 npm run test:smoke
 ```
 
+Runs all k6 smoke performance tests.
+
+```bash
+npm run test:smoke:health
+```
+
 Runs the k6 smoke performance test against the local `/health` endpoint.
+
+```bash
+npm run test:smoke:products
+```
+
+Runs the k6 smoke performance test against the local `/products` endpoint.
 
 ```bash
 npm run typecheck
@@ -102,26 +131,61 @@ npm run typecheck
 
 Runs TypeScript validation without emitting compiled files.
 
-## Current smoke test
+## Current smoke tests
 
-The current smoke test verifies that the local API is reachable and responds correctly under minimal load.
+The current smoke tests verify that the local API is reachable and responds correctly under minimal load.
 
-It checks:
+### `GET /health`
+
+The `/health` smoke test checks:
 
 - `GET /health` returns HTTP 200
 - the response uses JSON content type
+- smoke performance thresholds are met
+
+### `GET /products`
+
+The `/products` smoke test checks:
+
+- `GET /products` returns HTTP 200
+- the response uses JSON content type
+- the response body has the expected basic shape
+- `data` is an array
+- `count` is a number
+- `count` matches `data.length`
+- the product list is not empty
+- smoke performance thresholds are met
+
+## Current smoke thresholds
+
+The current smoke thresholds verify that:
+
+- 100% of k6 checks pass
 - failed HTTP requests stay below 1%
 - 95% of requests complete below 500 ms
+
+These thresholds are intentionally simple at this stage and will be refined as more performance scenarios are added.
 
 ## Checks vs thresholds
 
 This project uses both k6 checks and thresholds.
 
-**Checks** validate basic response correctness, for example whether the endpoint returns HTTP 200.
+**Checks** validate response correctness, for example whether the endpoint returns HTTP 200, whether the response uses JSON content type, or whether the response body has the expected shape.
 
-**Thresholds** define performance pass/fail criteria, for example maximum acceptable response time or error rate.
+**Thresholds** define performance pass/fail criteria, for example maximum acceptable response time, failed request rate, or required check pass rate.
 
 This distinction is important because a performance test should not only confirm that the API responds, but also whether it responds within acceptable performance limits.
+
+## Why a local API?
+
+The project uses a local API instead of a public third-party API because performance testing should be safe, controlled and repeatable.
+
+A local API allows the test suite to evolve without:
+
+- generating traffic against external services
+- dealing with third-party rate limits
+- depending on external infrastructure stability
+- producing misleading results caused by network or provider variability
 
 ## Planned improvements
 
@@ -137,4 +201,4 @@ This distinction is important because a performance test should not only confirm
 
 This project is being developed iteratively.
 
-The current version focuses on establishing a clean foundation: local API, k6 execution, basic checks, thresholds and TypeScript validation. More advanced scenarios will be added in later commits.
+The current version focuses on establishing a clean foundation: local API, k6 execution, basic checks, thresholds, response body validation and TypeScript validation. More advanced scenarios will be added in later commits.
