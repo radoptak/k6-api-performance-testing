@@ -7,12 +7,13 @@
     "test": "npm run test:smoke",
     "typecheck": "tsc --noEmit",
     "start:api": "tsx app/server.ts",
-    "test:smoke": "npm run test:smoke:health && npm run test:smoke:products && npm run test:smoke:product-details",
+    "test:smoke": "npm run test:smoke:health && npm run test:smoke:products && npm run test:smoke:product-details && npm run test:smoke:missing-product",
     "test:smoke:health": "k6 run tests/smoke/health.smoke.test.ts",
     "test:smoke:products": "k6 run tests/smoke/products.smoke.test.ts",
     "test:load:products": "k6 run tests/load/products.load.test.ts",
     "test:load": "npm run test:load:products",
-    "test:smoke:product-details": "k6 run tests/smoke/product-details.smoke.test.ts"
+    "test:smoke:product-details": "k6 run tests/smoke/product-details.smoke.test.ts",
+    "test:smoke:missing-product": "k6 run tests/smoke/missing-product.smoke.test.ts"
   },
   "keywords": [],
   "author": "",
