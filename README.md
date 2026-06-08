@@ -18,6 +18,7 @@ Instead, it uses a local API as the system under test. This makes the test envir
 - defining performance thresholds
 - separating functional checks from performance criteria
 - validating response status, headers, body shape and individual item structure
+- testing both list and details API responses
 - creating smoke and load test scenarios
 - running smoke performance tests in GitHub Actions
 - creating a project structure suitable for CI/CD integration
@@ -38,8 +39,10 @@ The project currently includes:
 - a local Node.js REST API used as the system under test
 - a `/health` endpoint for basic smoke performance testing
 - a `/products` endpoint returning sample product data
+- a `/products/:id` endpoint returning a single product by id
 - k6 smoke performance tests written in TypeScript
-- product response item shape validation in the `/products` smoke test
+- smoke tests for `/health`, `/products` and `/products/:id`
+- product response item shape validation using reusable validators
 - a k6 load test scenario for `GET /products`
 - reusable smoke and load thresholds
 - shared environment configuration
@@ -59,14 +62,17 @@ k6-api-performance-testing/
 │   │   └── products.ts
 │   └── server.ts
 ├── src/
-│   └── config/
-│       ├── environment.ts
-│       └── performance-thresholds.ts
+│   ├── config/
+│   │   ├── environment.ts
+│   │   └── performance-thresholds.ts
+│   └── validators/
+│       └── product-response.ts
 ├── tests/
 │   ├── load/
 │   │   └── products.load.test.ts
 │   └── smoke/
 │       ├── health.smoke.test.ts
+│       ├── product-details.smoke.test.ts
 │       └── products.smoke.test.ts
 ├── README.md
 ├── package.json
@@ -139,6 +145,12 @@ npm run test:smoke:products
 Runs the k6 smoke performance test against the local `/products` endpoint.
 
 ```bash
+npm run test:smoke:product-details
+```
+
+Runs the k6 smoke performance test against the local `/products/:id` endpoint.
+
+```bash
 npm run test:load
 ```
 
@@ -208,6 +220,22 @@ The `/products` smoke test checks:
 - `count` is a number
 - `count` matches `data.length`
 - the product list is not empty
+- smoke performance thresholds are met
+
+### `GET /products/:id`
+
+The `/products/:id` smoke test checks:
+
+- `GET /products/prod-001` returns HTTP 200
+- the response uses JSON content type
+- the response body has the expected single product shape:
+  - `id` is a string
+  - `name` is a string
+  - `category` is a string
+  - `price` is a number
+  - `inStock` is a boolean
+
+- the returned product id matches the requested product id
 - smoke performance thresholds are met
 
 ## Current load test
@@ -316,7 +344,8 @@ A local API allows the test suite to evolve without:
 
 ## Planned improvements
 
-- add more realistic API endpoints
+- add missing product negative smoke test
+- add product browsing load scenario using `/products` and `/products/:id`
 - add business-rule validation for product data
 - add stress test scenario
 - add spike test scenario
@@ -328,4 +357,4 @@ A local API allows the test suite to evolve without:
 
 This project is being developed iteratively.
 
-The current version focuses on establishing a clean foundation: local API, k6 execution, smoke checks, product item shape validation, a first load scenario, reusable thresholds, response body validation, TypeScript validation and GitHub Actions smoke workflow. More advanced scenarios will be added in later commits.
+The current version focuses on establishing a clean foundation: local API, k6 execution, smoke checks for health, product list and product details endpoints, product item shape validation, a first load scenario, reusable thresholds, response body validation, TypeScript validation and GitHub Actions smoke workflow. More advanced scenarios will be added in later commits.
