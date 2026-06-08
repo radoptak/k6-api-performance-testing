@@ -19,6 +19,8 @@ Instead, it uses a local API as the system under test. This makes the test envir
 - separating functional checks from performance criteria
 - validating response status, headers, body shape and individual item structure
 - testing both list and details API responses
+- testing positive and negative API scenarios
+- handling expected negative responses in k6
 - creating smoke and load test scenarios
 - running smoke performance tests in GitHub Actions
 - creating a project structure suitable for CI/CD integration
@@ -41,8 +43,9 @@ The project currently includes:
 - a `/products` endpoint returning sample product data
 - a `/products/:id` endpoint returning a single product by id
 - k6 smoke performance tests written in TypeScript
-- smoke tests for `/health`, `/products` and `/products/:id`
+- smoke tests for `/health`, `/products`, `/products/:id` and missing product scenarios
 - product response item shape validation using reusable validators
+- expected `404` handling for negative smoke testing
 - a k6 load test scenario for `GET /products`
 - reusable smoke and load thresholds
 - shared environment configuration
@@ -72,6 +75,7 @@ k6-api-performance-testing/
 │   │   └── products.load.test.ts
 │   └── smoke/
 │       ├── health.smoke.test.ts
+│       ├── missing-product.smoke.test.ts
 │       ├── product-details.smoke.test.ts
 │       └── products.smoke.test.ts
 ├── README.md
@@ -148,7 +152,13 @@ Runs the k6 smoke performance test against the local `/products` endpoint.
 npm run test:smoke:product-details
 ```
 
-Runs the k6 smoke performance test against the local `/products/:id` endpoint.
+Runs the k6 smoke performance test against the local `/products/:id` endpoint for an existing product.
+
+```bash
+npm run test:smoke:missing-product
+```
+
+Runs the k6 smoke performance test against the local `/products/:id` endpoint for a missing product.
 
 ```bash
 npm run test:load
@@ -238,6 +248,18 @@ The `/products/:id` smoke test checks:
 - the returned product id matches the requested product id
 - smoke performance thresholds are met
 
+### `GET /products/:id` for a missing product
+
+The missing product smoke test checks:
+
+- `GET /products/unknown` returns HTTP 404
+- the response uses JSON content type
+- the response body has the expected error shape
+- the error message is `Product Not Found`
+- smoke performance thresholds are met
+
+This test uses k6 expected status handling so that the expected `404` response is not treated as a failed HTTP request.
+
 ## Current load test
 
 The current load test verifies that the `/products` endpoint remains stable under a small, constant local load.
@@ -275,6 +297,24 @@ The products load test verifies that:
 
 These thresholds are intentionally simple at this stage and will be refined as more realistic scenarios are added.
 
+## Expected negative responses
+
+The project includes a negative smoke test for a missing product:
+
+```text
+GET /products/unknown
+```
+
+This endpoint is expected to return:
+
+```text
+404 Product Not Found
+```
+
+In k6, HTTP `4xx` responses are normally counted as failed HTTP requests. For this specific negative scenario, the test explicitly marks `404` as an expected status.
+
+This allows the test to keep strict smoke thresholds while still validating a correct negative API response.
+
 ## GitHub Actions
 
 This project includes a GitHub Actions workflow for smoke performance testing:
@@ -307,7 +347,7 @@ The load test is intentionally kept out of the default CI workflow because it ha
 
 This project uses both k6 checks and thresholds.
 
-**Checks** validate response correctness, for example whether the endpoint returns HTTP 200, whether the response uses JSON content type, whether the response body has the expected shape, or whether product items have the expected structure.
+**Checks** validate response correctness, for example whether the endpoint returns HTTP 200, whether the response uses JSON content type, whether the response body has the expected shape, whether product items have the expected structure, or whether an expected error response is returned.
 
 **Thresholds** define pass/fail criteria for the whole test run, for example maximum acceptable response time, failed request rate, or required check pass rate.
 
@@ -344,7 +384,6 @@ A local API allows the test suite to evolve without:
 
 ## Planned improvements
 
-- add missing product negative smoke test
 - add product browsing load scenario using `/products` and `/products/:id`
 - add business-rule validation for product data
 - add stress test scenario
@@ -357,4 +396,4 @@ A local API allows the test suite to evolve without:
 
 This project is being developed iteratively.
 
-The current version focuses on establishing a clean foundation: local API, k6 execution, smoke checks for health, product list and product details endpoints, product item shape validation, a first load scenario, reusable thresholds, response body validation, TypeScript validation and GitHub Actions smoke workflow. More advanced scenarios will be added in later commits.
+The current version focuses on establishing a clean foundation: local API, k6 execution, smoke checks for health, product list, product details and missing product scenarios, product item shape validation, expected negative response handling, a first load scenario, reusable thresholds, response body validation, TypeScript validation and GitHub Actions smoke workflow. More advanced scenarios will be added in later commits.
