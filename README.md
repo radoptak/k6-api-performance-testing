@@ -1,5 +1,7 @@
 # k6 API Performance Testing
 
+[![Smoke Performance Tests](https://github.com/radoptak/k6-api-performance-testing/actions/workflows/smoke-performance.yml/badge.svg)](https://github.com/radoptak/k6-api-performance-testing/actions/workflows/smoke-performance.yml)
+
 API performance testing portfolio project using **k6**, **TypeScript** and a controlled local REST API.
 
 The goal of this project is to demonstrate how performance tests can be designed, implemented and maintained in a safe, repeatable and CI-friendly way.
