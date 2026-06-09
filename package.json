@@ -11,9 +11,10 @@
     "test:smoke:health": "k6 run tests/smoke/health.smoke.test.ts",
     "test:smoke:products": "k6 run tests/smoke/products.smoke.test.ts",
     "test:load:products": "k6 run tests/load/products.load.test.ts",
-    "test:load": "npm run test:load:products",
+    "test:load": "npm run test:load:products && npm run test:load:product-browsing",
     "test:smoke:product-details": "k6 run tests/smoke/product-details.smoke.test.ts",
-    "test:smoke:missing-product": "k6 run tests/smoke/missing-product.smoke.test.ts"
+    "test:smoke:missing-product": "k6 run tests/smoke/missing-product.smoke.test.ts",
+    "test:load:product-browsing": "k6 run tests/load/product-browsing.load.test.ts"
   },
   "keywords": [],
   "author": "",
