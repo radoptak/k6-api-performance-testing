@@ -22,6 +22,7 @@ Instead, it uses a local API as the system under test. This makes the test envir
 - testing positive and negative API scenarios
 - handling expected negative responses in k6
 - creating smoke and load test scenarios
+- designing a simple flow-based load scenario
 - running smoke performance tests in GitHub Actions
 - creating a project structure suitable for CI/CD integration
 - documenting performance testing decisions in a recruiter-friendly way
@@ -47,6 +48,7 @@ The project currently includes:
 - product response item shape validation using reusable validators
 - expected `404` handling for negative smoke testing
 - a k6 load test scenario for `GET /products`
+- a k6 product browsing load scenario using `GET /products` and `GET /products/:id`
 - reusable smoke and load thresholds
 - shared environment configuration
 - GitHub Actions workflow for smoke performance tests
@@ -72,6 +74,7 @@ k6-api-performance-testing/
 │       └── product-response.ts
 ├── tests/
 │   ├── load/
+│   │   ├── product-browsing.load.test.ts
 │   │   └── products.load.test.ts
 │   └── smoke/
 │       ├── health.smoke.test.ts
@@ -104,7 +107,7 @@ In a second terminal, run all smoke performance tests:
 npm run test:smoke
 ```
 
-Run the products load test:
+Run all load tests:
 
 ```bash
 npm run test:load
@@ -171,6 +174,12 @@ npm run test:load:products
 ```
 
 Runs the k6 load test against the local `/products` endpoint.
+
+```bash
+npm run test:load:product-browsing
+```
+
+Runs the k6 product browsing load scenario using `/products` and `/products/:id`.
 
 ```bash
 npm run typecheck
@@ -260,20 +269,46 @@ The missing product smoke test checks:
 
 This test uses k6 expected status handling so that the expected `404` response is not treated as a failed HTTP request.
 
-## Current load test
+## Current load tests
 
-The current load test verifies that the `/products` endpoint remains stable under a small, constant local load.
+The project currently includes two small local load tests.
+
+These tests are not intended to simulate production traffic. Their purpose is to establish a clean structure for future load, stress and spike scenarios.
 
 ### `GET /products` load scenario
 
-The products load test uses:
+The products load test verifies that the `/products` endpoint remains stable under a small, constant local load.
+
+The test uses:
 
 - `constant-vus` executor
 - 5 virtual users
 - 30 seconds duration
 - 1 second sleep between iterations
 
-This is intentionally a small local load scenario. It is not intended to simulate production traffic. Its purpose is to establish the structure for future load, stress and spike tests.
+This scenario is intentionally simple and focuses on a single endpoint.
+
+### Product browsing load scenario
+
+The product browsing load test verifies a simple product browsing flow:
+
+```text
+GET /products → select product → GET /products/:id
+```
+
+The test uses:
+
+- `constant-vus` executor
+- 5 virtual users
+- 30 seconds duration
+- dynamic product selection from the `/products` response
+- grouped scenario steps:
+  - `Browse product list`
+  - `Open product details`
+
+- 1 second sleep between iterations
+
+This scenario is more realistic than testing only one endpoint because it simulates a common API client flow: retrieve a list of resources, select one item and then open its details.
 
 ## Current thresholds
 
@@ -289,7 +324,7 @@ Smoke tests verify that:
 
 ### Load thresholds
 
-The products load test verifies that:
+Load tests verify that:
 
 - at least 99% of k6 checks pass
 - failed HTTP requests stay below 1%
@@ -341,13 +376,13 @@ The CI workflow performs the following steps:
 
 At this stage, the workflow runs smoke tests only.
 
-The load test is intentionally kept out of the default CI workflow because it has a different purpose and takes longer to execute. A separate manual workflow for load or extended performance scenarios may be added later.
+The load tests are intentionally kept out of the default CI workflow because they have a different purpose and take longer to execute. A separate manual workflow for load or extended performance scenarios may be added later.
 
 ## Checks vs thresholds
 
 This project uses both k6 checks and thresholds.
 
-**Checks** validate response correctness, for example whether the endpoint returns HTTP 200, whether the response uses JSON content type, whether the response body has the expected shape, whether product items have the expected structure, or whether an expected error response is returned.
+**Checks** validate response correctness, for example whether the endpoint returns HTTP 200, whether the response uses JSON content type, whether the response body has the expected shape, whether product items have the expected structure, whether the selected product is returned correctly, or whether an expected error response is returned.
 
 **Thresholds** define pass/fail criteria for the whole test run, for example maximum acceptable response time, failed request rate, or required check pass rate.
 
@@ -366,10 +401,10 @@ In this project, smoke tests run with minimal traffic and validate that endpoint
 A **load test** answers:
 
 ```text
-Does the endpoint remain stable under a defined level of traffic?
+Does the endpoint or flow remain stable under a defined level of traffic?
 ```
 
-In this project, the first load test runs `GET /products` with 5 constant virtual users for 30 seconds.
+In this project, load tests currently cover both a single endpoint scenario and a simple product browsing flow.
 
 ## Why a local API?
 
@@ -384,7 +419,6 @@ A local API allows the test suite to evolve without:
 
 ## Planned improvements
 
-- add product browsing load scenario using `/products` and `/products/:id`
 - add business-rule validation for product data
 - add stress test scenario
 - add spike test scenario
@@ -396,4 +430,4 @@ A local API allows the test suite to evolve without:
 
 This project is being developed iteratively.
 
-The current version focuses on establishing a clean foundation: local API, k6 execution, smoke checks for health, product list, product details and missing product scenarios, product item shape validation, expected negative response handling, a first load scenario, reusable thresholds, response body validation, TypeScript validation and GitHub Actions smoke workflow. More advanced scenarios will be added in later commits.
+The current version focuses on establishing a clean foundation: local API, k6 execution, smoke checks for health, product list, product details and missing product scenarios, product item shape validation, expected negative response handling, endpoint-level and flow-level load scenarios, reusable thresholds, response body validation, TypeScript validation and GitHub Actions smoke workflow. More advanced scenarios will be added in later commits.
